@@ -11,7 +11,7 @@ def generate_blog_post():
     destination = random.choice(destinations)
     activity = random.choice(activities)
     date = datetime.datetime.now().strftime("%Y-%m-%d")
-    title = f"Exploring {destination}: {activity.capitalize()}"
+    title = f'"Exploring {destination}: {activity.capitalize()}"'
     filename = f"{date}-{destination.lower().replace(' ', '-')}.md"
     
     content = f"""---
@@ -19,7 +19,7 @@ title: {title}
 date: {date}
 ---
 
-# {title}
+# {title[1:-1]}
 
 Today, we're excited to share our AI-generated guide on {activity} in {destination}. 
 
