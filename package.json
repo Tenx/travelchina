@@ -1,0 +1,19 @@
+{
+  "name": "china-travel-ai-blog",
+  "version": "1.0.0",
+  "description": "AI-powered China Travel Blog",
+  "main": "index.js",
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "generate-and-build": "bash generate_and_build.sh"
+  },
+  "keywords": ["china", "travel", "blog", "ai", "vitepress"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vitepress": "^1.0.0-alpha.75",
+    "vue": "^3.2.47"
+  }
+}
