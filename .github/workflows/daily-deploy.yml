@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        fetch-depth: 0
     
     - name: Set up Node.js
       uses: actions/setup-node@v2
@@ -33,10 +36,10 @@ jobs:
     
     - name: Commit and push changes
       run: |
-        git config --global user.name 'Tenx'
-        git config --global user.email '86tenx@gmail.com'
+        git config --local user.name 'Tenx'
+        git config --local user.email '86tenx@gmail.com'
         git add .
         git commit -m "Add daily blog post" || echo "No changes to commit"
-        git push "https://Tenx:${{ secrets.PERSONAL_ACCESS_TOKEN }}@github.com/Tenx/travelchina.git"
+        git push
       env:
-        PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
