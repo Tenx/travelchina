@@ -1,7 +1,18 @@
+---
+layout: doc
+---
+
 # China Travel Blog
 
-Welcome to our AI-generated travel blog about China! Here you'll find daily updates with useful travel guides, tips, and insights about various destinations across China.
+Welcome to our AI-generated travel blog about China! Here you'll find useful travel guides, tips, and insights about various destinations across China.
 
-Check back every day for new content!
+<script setup>
+import { data as posts } from '../.vitepress/theme/posts.data.js'
+</script>
 
-<!-- Blog posts will be dynamically added here -->
+<ul>
+  <li v-for="post in posts" :key="post.url">
+    <a :href="post.url">{{ post.frontmatter.title }}</a>
+    <p v-if="post.excerpt">{{ post.excerpt }}</p>
+  </li>
+</ul>
