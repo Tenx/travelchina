@@ -2,7 +2,7 @@
   "name": "china-travel-ai-blog",
   "version": "1.0.0",
   "description": "AI-powered China Travel Blog",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
@@ -13,7 +13,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "vitepress": "^1.0.0-alpha.75",
-    "vue": "^3.2.47"
+    "vitepress": "^1.3.1",
+    "vue": "^3.3.4"
   }
 }
