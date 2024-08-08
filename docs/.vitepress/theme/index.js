@@ -8,19 +8,18 @@ export default {
   setup() {
     const { theme, site } = useData()
     
-    const posts = computed(() => {
+    const travelGuides = computed(() => {
       return site.value.pages
-        .filter(page => page.relativePath.startsWith('blog/'))
-        .sort((a, b) => b.url.localeCompare(a.url))
+        .filter(page => page.relativePath.startsWith('destinations/') || page.relativePath.startsWith('travel-tips/'))
+        .sort((a, b) => b.date.localeCompare(a.date))
     })
 
     return {
-      posts
+      travelGuides
     }
   },
   enhanceApp({ app }) {
-    // If you need to provide posts to the entire app
-    app.provide('posts', computed(() => posts.value))
+    app.provide('travelGuides', computed(() => travelGuides.value))
   },
   Layout() {
     return h(DefaultTheme.Layout, null, {
