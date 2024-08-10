@@ -8,6 +8,7 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  # Set a 15-minute timeout for the entire job
     steps:
     - uses: actions/checkout@v2
       with:
@@ -45,14 +46,13 @@ jobs:
       run: |
         echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
     
-    - name: Generate blog posts and build site
-      run: |
-        for i in {1..3}
-        do
-          python generate_blog_post.py
-          sleep 5  # Add a short delay between API calls
-        done
-        npm run docs:build
+    - name: Generate blog posts
+      run: python generate_blog_post.py
+      timeout-minutes: 5  # Set a 5-minute timeout for blog post generation
+    
+    - name: Build site
+      run: npm run docs:build
+      timeout-minutes: 5  # Set a 5-minute timeout for site building
     
     - name: Commit and push changes
       run: |
