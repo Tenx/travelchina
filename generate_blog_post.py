@@ -1,12 +1,10 @@
 import random
-import datetime
 import os
-import json
+import logging
+import time
 from openai import OpenAI
 import uuid
 from dotenv import load_dotenv
-import logging
-import time
 from requests.exceptions import Timeout
 
 # Load environment variables
@@ -20,19 +18,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 destinations = [
     {"name": "Beijing", "attractions": ["Great Wall", "Forbidden City", "Temple of Heaven"], "local_food": ["Peking Duck", "Jianbing", "Zhajiangmian"]},
     {"name": "Shanghai", "attractions": ["The Bund", "Yu Garden", "Shanghai Tower"], "local_food": ["Xiaolongbao", "Shengjianbao", "Hairy Crab"]},
-    {"name": "Xi'an", "attractions": ["Terracotta Army", "City Wall", "Muslim Quarter"], "local_food": ["Roujiamo", "Biang Biang Noodles", "Yangrou Paomo"]},
-    {"name": "Chengdu", "attractions": ["Giant Panda Base", "Leshan Giant Buddha", "Jinli Street"], "local_food": ["Hotpot", "Mapo Tofu", "Kung Pao Chicken"]},
-    {"name": "Guilin", "attractions": ["Li River Cruise", "Reed Flute Cave", "Longji Rice Terraces"], "local_food": ["Beer Fish", "Guilin Rice Noodles", "Stuffed Li River Snails"]},
-    {"name": "Hangzhou", "attractions": ["West Lake", "Lingyin Temple", "Longjing Tea Village"], "local_food": ["Dongpo Pork", "Beggar's Chicken", "West Lake Vinegar Fish"]},
-    {"name": "Suzhou", "attractions": ["Humble Administrator's Garden", "Tiger Hill", "Pingjiang Road"], "local_food": ["Squirrel-Shaped Mandarin Fish", "Biluochun Tea", "Suzhou-style Mooncakes"]},
-    {"name": "Chongqing", "attractions": ["Dazu Rock Carvings", "Ciqikou Ancient Town", "Yangtze River Cruise"], "local_food": ["Chongqing Hotpot", "Spicy Chicken", "Xiaomian Noodles"]},
-    {"name": "Harbin", "attractions": ["Ice and Snow World", "Saint Sophia Cathedral", "Siberian Tiger Park"], "local_food": ["Harbin Sausage", "Disanxian", "Russian-style Bread"]},
-    {"name": "Guangzhou", "attractions": ["Canton Tower", "Shamian Island", "Chen Clan Ancestral Hall"], "local_food": ["Dim Sum", "Wonton Noodles", "White Cut Chicken"]},
-    {"name": "Kunming", "attractions": ["Stone Forest", "Dianchi Lake", "Western Hills"], "local_food": ["Over-the-Bridge Rice Noodles", "Steam Pot Chicken", "Erkuai"]},
-    {"name": "Lhasa", "attractions": ["Potala Palace", "Jokhang Temple", "Namtso Lake"], "local_food": ["Tsampa", "Yak Butter Tea", "Tibetan Momo"]},
-    {"name": "Xiamen", "attractions": ["Gulangyu Island", "Nanputuo Temple", "Hulishan Fortress"], "local_food": ["Oyster Omelet", "Satay Noodles", "Shacha Noodles"]},
-    {"name": "Nanjing", "attractions": ["Sun Yat-sen Mausoleum", "Confucius Temple", "Ming Xiaoling Mausoleum"], "local_food": ["Salted Duck", "Duck Blood and Vermicelli Soup", "Pan-fried Beef Dumplings"]},
-    {"name": "Qingdao", "attractions": ["Tsingtao Brewery", "Badaguan Scenic Area", "Laoshan Mountain"], "local_food": ["Seafood", "Qingdao Beer", "Clam Soup"]},
+    # ... (keep the rest of the destinations)
 ]
 
 def generate_openai_content(prompt):
@@ -111,68 +97,11 @@ title: "{title}"
             f.write(content)
         logging.info(f"Blog post written to {file_path}")
         
-        new_post = {
-            "title": title,
-            "filename": filename
-        }
-        update_vitepress_config(new_post)
-        
         logging.info(f"Blog post generation completed in {time.time() - start_time:.2f} seconds")
-        return filename, content
+        return filename, title
     except Exception as e:
         logging.error(f"Error in blog post generation: {str(e)}")
         raise
-
-import json
-import shutil
-
-def update_vitepress_config(new_post):
-    config_path = 'docs/.vitepress/config.mjs'
-    backup_path = 'docs/.vitepress/config.mjs.bak'
-    
-    try:
-        # Create a backup of the original file
-        shutil.copy2(config_path, backup_path)
-        
-        with open(config_path, 'r') as f:
-            config_content = f.read()
-        
-        # Find the themeConfig object
-        theme_config_start = config_content.find('themeConfig:')
-        theme_config_end = config_content.find('})', theme_config_start)
-        
-        if theme_config_start == -1 or theme_config_end == -1:
-            raise ValueError("Could not find themeConfig in the config file.")
-        
-        # Extract and parse the themeConfig object
-        theme_config_str = config_content[theme_config_start:theme_config_end+1]
-        theme_config_str = theme_config_str.replace('themeConfig:', '').strip()
-        theme_config = json.loads(theme_config_str)
-        
-        # Add the new item to the sidebar
-        new_item = {"text": new_post['title'], "link": f"/blog/{new_post['filename'][:-3]}"}
-        theme_config['sidebar'][0]['items'].insert(0, new_item)
-        
-        # Convert the updated themeConfig back to a string
-        updated_theme_config = json.dumps(theme_config, indent=2)
-        
-        # Replace the old themeConfig with the updated one
-        updated_content = (
-            config_content[:theme_config_start] +
-            f'themeConfig: {updated_theme_config}' +
-            config_content[theme_config_end+1:]
-        )
-        
-        # Write the updated content back to the file
-        with open(config_path, 'w') as f:
-            f.write(updated_content)
-        
-        logging.info(f"Updated Vitepress config with new post: {new_post['title']}")
-    except Exception as e:
-        logging.error(f"Error updating Vitepress config: {str(e)}")
-        # Restore the backup if an error occurred
-        shutil.copy2(backup_path, config_path)
-        logging.info("Restored original config file from backup.")
 
 def main():
     try:
@@ -182,7 +111,7 @@ def main():
         for i in range(1, 4):  # Run 3 times
             logging.info(f"Starting iteration {i} of 3")
             try:
-                filename, content = generate_blog_post()
+                filename, title = generate_blog_post()
                 logging.info(f"Successfully generated blog post in iteration {i}: {filename}")
             except Exception as e:
                 logging.error(f"Failed to generate blog post in iteration {i}: {str(e)}")
