@@ -2,7 +2,7 @@ import random
 import datetime
 import os
 import json
-import openai
+from openai import OpenAI
 import uuid
 from dotenv import load_dotenv
 
@@ -31,15 +31,15 @@ destinations = [
 ]
 
 def generate_openai_content(prompt):
-    response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",  # Updated to gpt-4o-mini as requested
+    client = OpenAI()
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",  # Updated to GPT-4 as requested
         messages=[
             {"role": "system", "content": "You are a knowledgeable travel guide specializing in China tourism."},
             {"role": "user", "content": prompt}
         ],
         max_tokens=1000,
         n=1,
-        stop=None,
         temperature=0.7,
     )
     return response.choices[0].message.content.strip()
@@ -55,7 +55,7 @@ def generate_detailed_guide(destination):
        - Using Google Translate for language assistance
        - Using Didi for taxi services
        - Internet access and VPN considerations
-    5. A sample 2-day itinerary
+    5. A sample 1-5 day itinerary
     6. Any additional insider tips or hidden gems
 
     Format the guide with Markdown headings and bullet points for readability."""
@@ -88,7 +88,7 @@ title: "{title}"
     return filename, content
 
 def update_vitepress_config(new_post):
-    config_path = 'docs/.vitepress/config.js'
+    config_path = 'docs/.vitepress/config.mjs'
     with open(config_path, 'r') as f:
         config = f.read()
     
