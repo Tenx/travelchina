@@ -10,6 +10,9 @@ import { data as posts } from '../.vitepress/theme/posts.data.js'
 # China Travel Guides
 
 <ul>
+  <li><a href="/blog/guilin-41e226b0-travel-guide">Guilin Travel Guide: From Ancient Wonders to Modern Marvels</a></li>
+  <li><a href="/blog/qingdao-57c3c362-travel-guide">Ultimate Qingdao Travel Guide: Top Attractions and Local Cuisine</a></li>
+  <li><a href="/blog/beijing-95f47022-travel-guide">Beijing Uncovered: Local Secrets and Tourist Favorites</a></li>
   <li v-for="post in posts" :key="post.url">
     <a :href="post.url">{{ post.title }}</a>
   </li>
