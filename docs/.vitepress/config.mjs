@@ -10,6 +10,13 @@ export default defineConfig({
       { text: 'Guides', link: '/blog/' },
       { text: 'Plan Your Trip', link: '/plan-your-trip' }
     ],
-    
+    sidebar: [
+      {
+        text: 'Travel Guides',
+        items: [
+          // Add guide items here
+        ]
+      }
+    ]
   }
 })

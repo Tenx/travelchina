@@ -89,18 +89,28 @@ title: "{title}"
 def update_vitepress_config(new_post):
     config_path = 'docs/.vitepress/config.mjs'
     with open(config_path, 'r') as f:
-        config = f.read()
+        config_lines = f.readlines()
     
-    sidebar_start = config.find("sidebar: [")
-    sidebar_end = config.find("]", sidebar_start)
+    sidebar_start = -1
+    items_start = -1
+    for i, line in enumerate(config_lines):
+        if 'sidebar: [' in line:
+            sidebar_start = i
+        if 'items: [' in line and sidebar_start != -1:
+            items_start = i
+            break
     
-    new_item = f'\n          {{ text: "{new_post["title"]}", link: "/blog/{new_post["filename"][:-3]}" }},'
-    insert_position = config.find("items: [", sidebar_start) + 8
+    if items_start == -1:
+        print("Could not find the correct location to insert the new post.")
+        return
     
-    updated_config = config[:insert_position] + new_item + config[insert_position:]
+    new_item = f"          {{ text: '{new_post['title']}', link: '/blog/{new_post['filename'][:-3]}' }},\n"
+    config_lines.insert(items_start + 1, new_item)
     
     with open(config_path, 'w') as f:
-        f.write(updated_config)
+        f.writelines(config_lines)
+    
+    print(f"Updated Vitepress config with new post: {new_post['title']}")
 
 def main():
     blog_dir = 'docs/blog'
