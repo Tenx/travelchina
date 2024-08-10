@@ -14,7 +14,7 @@ export default defineConfig({
       {
         text: 'Travel Guides',
         items: [
-          // Add guide items here
+          // Dynamic entries will be added here by the generate_blog_post.py script
         ]
       }
     ]

@@ -88,29 +88,35 @@ title: "{title}"
 
 def update_vitepress_config(new_post):
     config_path = 'docs/.vitepress/config.mjs'
-    with open(config_path, 'r') as f:
-        config_lines = f.readlines()
-    
-    sidebar_start = -1
-    items_start = -1
-    for i, line in enumerate(config_lines):
-        if 'sidebar: [' in line:
-            sidebar_start = i
-        if 'items: [' in line and sidebar_start != -1:
-            items_start = i
-            break
-    
-    if items_start == -1:
-        print("Could not find the correct location to insert the new post.")
-        return
-    
-    new_item = f"          {{ text: '{new_post['title']}', link: '/blog/{new_post['filename'][:-3]}' }},\n"
-    config_lines.insert(items_start + 1, new_item)
-    
-    with open(config_path, 'w') as f:
-        f.writelines(config_lines)
-    
-    print(f"Updated Vitepress config with new post: {new_post['title']}")
+    try:
+        with open(config_path, 'r') as f:
+            config_content = f.read()
+        
+        # Find the sidebar items array
+        items_start = config_content.find("items: [")
+        if items_start == -1:
+            raise ValueError("Could not find the sidebar items array in the config file.")
+        
+        items_end = config_content.find("]", items_start)
+        if items_end == -1:
+            raise ValueError("Could not find the end of the sidebar items array.")
+        
+        # Create the new item entry
+        new_item = f"          {{ text: '{new_post['title']}', link: '/blog/{new_post['filename'][:-3]}' }},"
+        
+        # Insert the new item at the beginning of the array
+        updated_content = (
+            config_content[:items_start + 8] +  # 8 is the length of "items: ["
+            "\n" + new_item + "\n" +
+            config_content[items_start + 8:])
+        
+        # Write the updated content back to the file
+        with open(config_path, 'w') as f:
+            f.write(updated_content)
+        
+        print(f"Updated Vitepress config with new post: {new_post['title']}")
+    except Exception as e:
+        print(f"Error updating Vitepress config: {str(e)}")
 
 def main():
     blog_dir = 'docs/blog'
