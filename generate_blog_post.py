@@ -131,6 +131,27 @@ tags: ["China", "Travel", "{destination['name']}", "Tourism", "Culture"]
 
 def update_blog_index(new_posts):
     index_path = 'docs/blog/index.md'
+    
+    # Create the index file if it doesn't exist
+    if not os.path.exists(index_path):
+        initial_content = """---
+layout: blog
+title: China Travel Guides
+---
+
+<script setup>
+import { data as posts } from '../.vitepress/theme/posts.data.js'
+</script>
+
+# China Travel Guides
+
+<ul>
+</ul>
+"""
+        with open(index_path, 'w', encoding='utf-8') as f:
+            f.write(initial_content)
+        logging.info(f"Created new blog index file at {index_path}")
+
     with open(index_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
