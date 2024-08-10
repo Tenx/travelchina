@@ -9,14 +9,6 @@ export default defineConfig({
       { text: 'Home', link: '/' },
       { text: 'Guides', link: '/blog/' },
       { text: 'Plan Your Trip', link: '/plan-your-trip' }
-    ],
-    sidebar: [
-      {
-        text: 'Travel Guides',
-        items: [
-          // Dynamic entries will be added here by the generate_blog_post.py script
-        ]
-      }
     ]
   }
 })
