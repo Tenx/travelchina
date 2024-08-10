@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# Set up OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# OpenAI API key is now set when creating the client
 
 destinations = [
     {"name": "Beijing", "attractions": ["Great Wall", "Forbidden City", "Temple of Heaven"], "local_food": ["Peking Duck", "Jianbing", "Zhajiangmian"]},
@@ -31,9 +30,9 @@ destinations = [
 ]
 
 def generate_openai_content(prompt):
-    client = OpenAI()
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     response = client.chat.completions.create(
-        model="gpt-4o-mini",  # Updated to GPT-4 as requested
+        model="gpt-4o-mini",  # Using GPT-4 as requested
         messages=[
             {"role": "system", "content": "You are a knowledgeable travel guide specializing in China tourism."},
             {"role": "user", "content": prompt}
