@@ -5,9 +5,15 @@ import json
 from openai import OpenAI
 import uuid
 from dotenv import load_dotenv
+import logging
+import time
+from requests.exceptions import Timeout
 
 # Load environment variables
 load_dotenv()
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # OpenAI API key is now set when creating the client
 
@@ -30,18 +36,30 @@ destinations = [
 ]
 
 def generate_openai_content(prompt):
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",  # Using GPT-4 as requested
-        messages=[
-            {"role": "system", "content": "You are a knowledgeable travel guide specializing in China tourism."},
-            {"role": "user", "content": prompt}
-        ],
-        max_tokens=1000,
-        n=1,
-        temperature=0.7,
-    )
-    return response.choices[0].message.content.strip()
+    logging.info("Starting OpenAI content generation")
+    start_time = time.time()
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a knowledgeable travel guide specializing in China tourism."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=1000,
+            n=1,
+            temperature=0.7,
+            timeout=30  # Set a 30-second timeout
+        )
+        content = response.choices[0].message.content.strip()
+        logging.info(f"Content generation completed in {time.time() - start_time:.2f} seconds")
+        return content
+    except Timeout:
+        logging.error("OpenAI API call timed out after 30 seconds")
+        raise
+    except Exception as e:
+        logging.error(f"Error in OpenAI content generation: {str(e)}")
+        raise
 
 def generate_detailed_guide(destination):
     prompt = f"""Create a detailed travel guide for {destination['name']}, China. Include the following:
@@ -72,70 +90,108 @@ def generate_detailed_guide(destination):
     return guide
 
 def generate_blog_post():
-    destination = random.choice(destinations)
-    title = f"Exploring {destination['name']}: Your Ultimate Travel Guide"
-    unique_id = str(uuid.uuid4())[:8]  # Use first 8 characters of a UUID
-    filename = f"{destination['name'].lower().replace(' ', '-')}-{unique_id}-travel-guide.md"
-    
-    content = f"""---
+    logging.info("Starting blog post generation")
+    start_time = time.time()
+    try:
+        destination = random.choice(destinations)
+        title = f"Exploring {destination['name']}: Your Ultimate Travel Guide"
+        unique_id = str(uuid.uuid4())[:8]
+        filename = f"{destination['name'].lower().replace(' ', '-')}-{unique_id}-travel-guide.md"
+        
+        content = f"""---
 title: "{title}"
 ---
 
 {generate_detailed_guide(destination)}
 """
-    
-    return filename, content
+        logging.info(f"Blog post content generated for {destination['name']}")
+        
+        file_path = os.path.join('docs/blog', filename)
+        with open(file_path, 'w') as f:
+            f.write(content)
+        logging.info(f"Blog post written to {file_path}")
+        
+        new_post = {
+            "title": title,
+            "filename": filename
+        }
+        update_vitepress_config(new_post)
+        
+        logging.info(f"Blog post generation completed in {time.time() - start_time:.2f} seconds")
+        return filename, content
+    except Exception as e:
+        logging.error(f"Error in blog post generation: {str(e)}")
+        raise
+
+import json
+import shutil
 
 def update_vitepress_config(new_post):
     config_path = 'docs/.vitepress/config.mjs'
+    backup_path = 'docs/.vitepress/config.mjs.bak'
+    
     try:
+        # Create a backup of the original file
+        shutil.copy2(config_path, backup_path)
+        
         with open(config_path, 'r') as f:
             config_content = f.read()
         
-        # Find the sidebar items array
-        items_start = config_content.find("items: [")
-        if items_start == -1:
-            raise ValueError("Could not find the sidebar items array in the config file.")
+        # Find the themeConfig object
+        theme_config_start = config_content.find('themeConfig:')
+        theme_config_end = config_content.find('})', theme_config_start)
         
-        items_end = config_content.find("]", items_start)
-        if items_end == -1:
-            raise ValueError("Could not find the end of the sidebar items array.")
+        if theme_config_start == -1 or theme_config_end == -1:
+            raise ValueError("Could not find themeConfig in the config file.")
         
-        # Create the new item entry
-        new_item = f"          {{ text: '{new_post['title']}', link: '/blog/{new_post['filename'][:-3]}' }},"
+        # Extract and parse the themeConfig object
+        theme_config_str = config_content[theme_config_start:theme_config_end+1]
+        theme_config_str = theme_config_str.replace('themeConfig:', '').strip()
+        theme_config = json.loads(theme_config_str)
         
-        # Insert the new item at the beginning of the array
+        # Add the new item to the sidebar
+        new_item = {"text": new_post['title'], "link": f"/blog/{new_post['filename'][:-3]}"}
+        theme_config['sidebar'][0]['items'].insert(0, new_item)
+        
+        # Convert the updated themeConfig back to a string
+        updated_theme_config = json.dumps(theme_config, indent=2)
+        
+        # Replace the old themeConfig with the updated one
         updated_content = (
-            config_content[:items_start + 8] +  # 8 is the length of "items: ["
-            "\n" + new_item + "\n" +
-            config_content[items_start + 8:])
+            config_content[:theme_config_start] +
+            f'themeConfig: {updated_theme_config}' +
+            config_content[theme_config_end+1:]
+        )
         
         # Write the updated content back to the file
         with open(config_path, 'w') as f:
             f.write(updated_content)
         
-        print(f"Updated Vitepress config with new post: {new_post['title']}")
+        logging.info(f"Updated Vitepress config with new post: {new_post['title']}")
     except Exception as e:
-        print(f"Error updating Vitepress config: {str(e)}")
+        logging.error(f"Error updating Vitepress config: {str(e)}")
+        # Restore the backup if an error occurred
+        shutil.copy2(backup_path, config_path)
+        logging.info("Restored original config file from backup.")
 
 def main():
-    blog_dir = 'docs/blog'
-    os.makedirs(blog_dir, exist_ok=True)
-    
-    filename, content = generate_blog_post()
-    file_path = os.path.join(blog_dir, filename)
-    
-    with open(file_path, 'w') as f:
-        f.write(content)
-    
-    print(f"Generated blog post: {file_path}")
-    
-    new_post = {
-        "title": content.split('\n')[1][7:-1],  # Extract title from the content
-        "filename": filename
-    }
-    update_vitepress_config(new_post)
-    print("Updated Vitepress config")
+    try:
+        blog_dir = 'docs/blog'
+        os.makedirs(blog_dir, exist_ok=True)
+        
+        for i in range(1, 4):  # Run 3 times
+            logging.info(f"Starting iteration {i} of 3")
+            try:
+                filename, content = generate_blog_post()
+                logging.info(f"Successfully generated blog post in iteration {i}: {filename}")
+            except Exception as e:
+                logging.error(f"Failed to generate blog post in iteration {i}: {str(e)}")
+            
+            if i < 3:  # Don't sleep after the last iteration
+                logging.info("Waiting 5 seconds before the next iteration...")
+                time.sleep(5)  # Wait for 5 seconds between iterations
+    except Exception as e:
+        logging.error(f"An error occurred in the main function: {str(e)}")
 
 if __name__ == "__main__":
     main()
