@@ -13,9 +13,6 @@ import { data as posts } from '../.vitepress/theme/posts.data.js'
 
 <div class="vp-doc">
   <ul>
-  <li><a href="/blog/xi'an-18ce64c8-travel-guide">Exploring Xi'an: A Comprehensive Guide for First-Time Visitors</a></li>
-  <li><a href="/blog/suzhou-05a4fdfc-travel-guide">Ultimate Suzhou Travel Guide: Top Attractions and Local Cuisine</a></li>
-  <li><a href="/blog/hangzhou-e37663c7-travel-guide">Exploring Hangzhou: A Comprehensive Guide for First-Time Visitors</a></li>
     <li v-for="post in posts" :key="post.url" class="guide-item">
       <h3>
         <a :href="post.url">{{ post.title }}</a>
