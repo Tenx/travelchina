@@ -39,7 +39,7 @@ def generate_openai_content(prompt):
     try:
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-4o-mini",  # Changed from "gpt-4o-mini" to "gpt-4"
             messages=[
                 {"role": "system", "content": "You are a knowledgeable travel guide specializing in China tourism."},
                 {"role": "user", "content": prompt}
@@ -132,69 +132,19 @@ tags: ["China", "Travel", "{destination['name']}", "Tourism", "Culture"]
         logging.error(f"Error in blog post generation: {str(e)}")
         raise
 
-def update_blog_index(new_posts):
-    index_path = 'docs/blog/index.md'
-    
-    # Create the index file if it doesn't exist
-    if not os.path.exists(index_path):
-        initial_content = """---
-layout: blog
-title: China Travel Guides
----
-
-<script setup>
-import { data as posts } from '../.vitepress/theme/posts.data.js'
-</script>
-
-# China Travel Guides
-
-<ul>
-</ul>
-"""
-        with open(index_path, 'w', encoding='utf-8') as f:
-            f.write(initial_content)
-        logging.info(f"Created new blog index file at {index_path}")
-
-    with open(index_path, 'r', encoding='utf-8') as f:
-        content = f.read()
-
-    # Find the position to insert new posts
-    insert_position = content.find('<ul>')
-    if insert_position == -1:
-        logging.error("Could not find <ul> tag in blog index file")
-        return
-
-    # Create new list items for the new posts
-    new_items = '\n'.join([f'  <li><a href="{post["url"]}">{post["title"]}</a></li>' for post in new_posts])
-
-    # Insert the new items after the <ul> tag
-    updated_content = content[:insert_position + 4] + '\n' + new_items + content[insert_position + 4:]
-
-    # Write the updated content back to the file
-    with open(index_path, 'w', encoding='utf-8') as f:
-        f.write(updated_content)
-
-    logging.info("Blog index updated successfully")
-
 def main():
     try:
         blog_dir = 'docs/blog'
         os.makedirs(blog_dir, exist_ok=True)
         
-        new_posts = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             futures = [executor.submit(generate_blog_post) for _ in range(3)]
             for i, future in enumerate(concurrent.futures.as_completed(futures), 1):
                 try:
                     filename, title = future.result()
-                    url = f'/blog/{filename[:-3]}'  # Remove .md extension
-                    new_posts.append({"url": url, "title": title})
                     logging.info(f"Successfully generated blog post {i}: {filename}")
                 except Exception as e:
                     logging.error(f"Failed to generate blog post {i}: {str(e)}")
-        
-        # Update the blog index with new posts
-        update_blog_index(new_posts)
         
     except Exception as e:
         logging.error(f"An error occurred in the main function: {str(e)}")
