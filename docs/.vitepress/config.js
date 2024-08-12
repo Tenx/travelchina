@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'China Travel Guide',
+  title: 'China Trip Guides',
   description: 'Comprehensive travel tips and guides for exploring China',
   ignoreDeadLinks: true,
   themeConfig: {
@@ -26,4 +26,21 @@ export default defineConfig({
       excerpt: true,
     },
   },
+  markdown: {
+    image: {
+      lazyLoading: true
+    },
+    linkify: true,
+    config: (md) => {
+      // Optional: Add plugins here if needed
+      // For example: md.use(require('markdown-it-image-figures'))
+    }
+  },
+  vue: {
+    template: {
+      compilerOptions: {
+        isCustomElement: (tag) => tag.includes('source-unsplash')
+      }
+    }
+  }
 })

@@ -1,7 +1,7 @@
 {
-  "name": "china-travel-ai-blog",
+  "name": "chinatripguides",
   "version": "1.0.0",
-  "description": "AI-powered China Travel Blog",
+  "description": "Chiana Trip Guides",
   "type": "module",
   "scripts": {
     "docs:dev": "vitepress dev docs",
@@ -9,7 +9,7 @@
     "docs:preview": "vitepress preview docs",
     "generate-and-build": "bash generate_and_build.sh"
   },
-  "keywords": ["china", "travel", "blog", "ai", "vitepress"],
+  "keywords": ["china", "trip", "travel", "guides", "blog"],
   "author": "",
   "license": "MIT",
   "devDependencies": {

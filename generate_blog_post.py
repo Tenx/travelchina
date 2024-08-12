@@ -73,11 +73,14 @@ def generate_detailed_guide(destination):
 
     ai_generated_content = generate_openai_content(prompt)
 
+    image_query = destination['name'].replace(' ', '+')
+    image_url = f"https://source.unsplash.com/1600x900/?{image_query},cityscape"
+
     guide = f"""# Exploring {destination['name']}: Your Ultimate Travel Guide
 
 {ai_generated_content}
 
-![{destination['name']} Skyline](https://source.unsplash.com/1600x900/?{destination['name'].replace(' ', '')},cityscape)
+<img src="{image_url}" alt="{destination['name']} Skyline" loading="lazy">
 
 *Note: This image is for illustrative purposes only and may not represent the exact location.*
 """
